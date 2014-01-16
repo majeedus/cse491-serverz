@@ -19,9 +19,11 @@ while True:
     c, (client_host, client_port) = s.accept()
     print 'Got connection from', client_host, client_port
 
-    #send a response
+    #send a response # @UM Need a space after send 
     c.send('HTTP/1.0 200 OK\r\n')
-    c.send('Content-type: text/html\r\n')
-    c.send('<h1>Hello, world.')
-    c.send('This is ctb\'s Web server.')
+    c.send('Content-type: text/html\r\n\r\n') # @UM Need the <html> and <body> tags
+    c.send('<html><body>')
+    c.send('<h1>Hello, world.</h1>') # @UM Add the closing </h1> tag
+    c.send('This is ctb\'s Web server.') # @UM As well as the closing html/body tags
+    c.send('</body></html>')
     c.close()
