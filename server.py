@@ -22,7 +22,7 @@ while True:
     #send a response # @UM Need a space after send 
     c.send('HTTP/1.0 200 OK\r\n')
     c.send('Content-type: text/html\r\n\r\n') # @UM Need the <html> and <body> tags
-    c.send('<html><body>')
+    c.send('<html><body>')					  # @UM Also needed the extra \r\n
     c.send('<h1>Hello, world.</h1>') # @UM Add the closing </h1> tag
     c.send('This is ctb\'s Web server.') # @UM As well as the closing html/body tags
     c.send('</body></html>')
