@@ -4,6 +4,14 @@ import socket
 import time
 from urlparse import urlparse
 from urlparse import parse_qs
+import cgi
+import StringIO
+import sys
+import jinja2
+
+#Initiate jinja2 library
+loader = jinja2.FileSystemLoader('./templates')
+env = jinja2.Environment(loader=loader)
 
 def main():
 	s = socket.socket()         # Create a socket object
@@ -27,110 +35,120 @@ def send200(conn):
     conn.send('HTTP/1.0 200 OK\r\n')
     conn.send('Content-type: text/html\r\n')
     conn.send('\r\n')
+    
+def send404(conn):
+    conn.send('HTTP/1.0 404 NOT FOUND\r\n')
+    conn.send('Content-type: text/html\r\n')
+    conn.send('\r\n')
+
+def send501(conn):
+    conn.send('HTTP/1.0 501 Not Implemented\r\n')
+    conn.send('Content-type: text/html\r\n')
+    conn.send('\r\n')   
 		
 def handle_connection(conn):
-	request = conn.recv(1000).split(' ')
-	url_request = request[1]
-	url_info = urlparse(url_request)
-	url_path = url_info.path
+	# Get the request type and folder
+	request_init = ''
+	while True:
+		request_init += conn.recv(1)
+		if '\r\n\r\n' in request_init:
+			break
+		
+	request = StringIO.StringIO(request_init)
+	server = {}
+	server['REQUEST_METHOD'], path, \
+	server['SERVER_PROTOCOL'] = request.readline().split()
 	
-	send200(conn)
+	# Grab the path
+	path = urlparse.urlparse(path)
+	server['PATH_INFO'] = path.path_exists
+	server['QUERY_STRING'] = path.query
 	
-	if request[0] == 'GET':
-		if url_path == '/':
-			index(conn, url_info)
-		elif url_path == '/content':
-			content(conn, url_info)
-		elif url_path == '/files':
-			files(conn, url_info)
-		elif url_path == '/images':
-			images(conn, url_info)
-		elif url_path == '/form':
-			form(conn, url_info)
-		elif url_path == '/submit':
-			submit(conn, url_info, request, 'GET')
-	elif request[0] == 'POST':
-		if url_path == '/submiit':
-			submit(conn, url_info, request, 'POST')
-		else:
-			post(conn, request)
-			
-		conn.send('<html><body>')
-		conn.send('<h1>You have posted content.</h1>')
-		conn.send('</body></html>')
-
+	# Parse the query string
+	if server['REQUEST_METHOD'] == 'GET':
+		getRequest(conn, server, request)
+	elif server['REQUEST_METHOD'] == 'POST':
+		postRequest(conn, server, request)
+	##else
+		##send500(conn, server)
+	
+	conn.close()
+	
+def getRequests(conn, server, request):	
+	if server['PATH_INFO'] == '/':
+		send200(conn)
+		index(conn, server)
+	elif server['PATH_INFO'] == '/content':
+		send200(conn)
+		content(conn, server)
+	elif server['PATH_INFO'] == '/file':
+		send200(conn)
+		file(conn, server)
+	elif server['PATH_INFO'] == '/image':
+		send200(conn)
+		image(conn, server)
+	elif server['PATH_INFO'] == '/form':
+		send200(conn)
+		form(conn, server)
+	elif server['PATH_INFO'] == '/submit':
+		submit(conn, server)
+	elif server['PATH_INFO'] == '/form-post':
+		send200(conn)
+		form_post(conn, server)
+	else:
+		send404(conn)
+		##error_404(conn, server)
+		
 	conn.close()
 
-def index(conn, url_info):
-	output = 'HTTP/1.0 200 OK\r\n' + \
-             'Content-type: text/html\r\n\r\n' + \
-             '<h1>Hello, world.</h1>' + \
-             'This is majeedus\'s web server.</br>' + \
-             '<a href="/content">Content</a></br>' + \
-             '<a href="/images">Images</a></br>' + \
-             '<a href="/files">Files</a></br>' + \
-             '<a href="/form">Form</a></br>'
-	conn.send(output)
+def PostRequests(conn, server, request):
+    info = {}
+    line = request.readline()
+    while line != '\r\n':
+        k, v = line.split(': ')
+        info[k.lower()] = v.strip('\r\n')
+        line = request.readline()
 
-def content(conn, url_info):
-	output = 'HTTP/1.0 200 OK\r\n' + \
-             'Content-type: text/html\r\n\r\n' + \
-             '<h1>Content page!</h1>'
-	conn.send(output)
+    if 'content-length' in info.keys():
+        request = StringIO.StringIO(conn.recv(int(d['content-length'])))
 
-def images(conn, url_info):
-	output = 'HTTP/1.0 200 OK\r\n' + \
-             'Content-type: text/html\r\n\r\n' + \
-             '<h1>Images page!</h1>'
-	conn.send(output)
+    form = cgi.FieldStorage(headers=d, fp=request, server=server)
 
-def files(conn, url_info):
-	output = 'HTTP/1.0 200 OK\r\n' + \
-             'Content-type: text/html\r\n\r\n' + \
-             '<h1>Files page!</h1>'
-	conn.send(output)
+    if server['PATH_INFO'] == '/submitpost':
+        send200(conn)
+        post_results(conn, form)
+    else:
+        send404(conn)
 
-def form(conn, url_info):
-	output = 'HTPP/1.0 200 OK\r\n' + \
-			 'Content-type: text/html\r\n\r\n' + \
-			 ' \r\n' + \
-			 "<form action = '/submit' method = 'GET'>" + \
-			 "Enter Your First Name:<input type='text' name='first_name'>" + \
-			 "Enter Your Last Name:<input type='text' name='last_name'>" + \
-			 "<input type='submit' value='GET'>" + \
-			 "</form>\r\n" + \
-			 "<form action = '/submit' method = 'POST'>" + \
-			 "Enter Your First Name:<input type='text' name='first_name'>" + \
-			 "Enter Your Last Name:<input type='text' name='last_name'>" + \
-			 "<input type='submit' value='POST'>" + \
-			 "</form>\r\n"
-	conn.send(output)
+def index(conn, server):
+	conn.send(env.get_template('index.html').render())
+
+def content(conn, server):
+	conn.send(env.get_template('content.html').render())
+
+def image(conn, server):
+	conn.send(env.get_template('image.html').render())
+
+def file(conn, server):
+	conn.send(env.get_template('file.html').render())
+
+def form(conn, server):
+	conn.send(env.get_template('form.html').render())
+	
+def form_post(conn, server):
+	conn.send(env.get_template('form_post.html').render())
 			 
 def submit(conn, url_info, data, request_type):
-	if request_type == "GET":
-		web_info = url_info.query
-	elif request_type == "POST":
-		web_info = data.splitlines()[-1]
-	
-	info = parse_qs(web_info)
-	first_name = info['first_name'][0]
-	last_name = info['last_name'][0]
-	
-	message = 'Hello there %s %s' % (first_name, last_name)
-	output = 'HTPP/1.0 200 OK\r\n' + \
-			 'Content-type: text/html\r\n\r\n' + \
-			 '<p>' + \
-			 message +\
-			 '</p>'
-	conn.send(output)
-	
+    query_string = urlparse.parse_qs(environ['QUERY_STRING'])
+    vars = {'firstname':query_string['firstname'][0], 'lastname':query_string['lastname'][0]}
 
-def post(conn, url_info):
-	output = 'HTTP/1.0 200 OK\r\n' + \
-             'Content-type: text/html\r\n\r\n' + \
-             '<h1>Hello, this is majeedus\'s web server.</h1>'
-	conn.send(output)
+    conn.send(env.get_template('form_results.html').render(vars))
 
+def post_results(conn, form):
+	vars = {'firstname':form.getvalue('firstname'), 'lastname':form.getvalue('lastname')}
+    
+	conn.send(env.get_template('form_results.html').render(vars))
+	
 
 if __name__ == '__main__':
    main()
