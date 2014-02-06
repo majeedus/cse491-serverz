@@ -11,7 +11,7 @@ import jinja2
 
 #Initiate jinja2 library
 loader = jinja2.FileSystemLoader('./templates')
-env = jinja2.Environment(loader=loader)
+env = jinja2.Environment(autoescape=False, extensions=['jinja2.ext.autoescape'], loader=loader)
 
 def main():
 	s = socket.socket()         # Create a socket object
@@ -92,7 +92,7 @@ def getRequest(conn, server, request):
 		form(conn, server)
 	elif server['PATH_INFO'] == '/submit':
 		submit(conn, server)
-	elif server['PATH_INFO'] == '/form-post':
+	elif server['PATH_INFO'] == '/formpost':
 		send200(conn)
 		form_post(conn, server)
 	else:
@@ -101,7 +101,7 @@ def getRequest(conn, server, request):
 		
 	conn.close()
 
-def PostRequest(conn, server, request):
+def postRequest(conn, server, request):
     info = {}
     line = request.readline()
     while line != '\r\n':
@@ -110,9 +110,9 @@ def PostRequest(conn, server, request):
         line = request.readline()
 
     if 'content-length' in info.keys():
-        request = StringIO.StringIO(conn.recv(int(d['content-length'])))
+        request = StringIO.StringIO(conn.recv(int(info['content-length'])))
 
-    form = cgi.FieldStorage(headers=d, fp=request, server=server)
+    form = cgi.FieldStorage(headers=info, fp=request)
 
     if server['PATH_INFO'] == '/submitpost':
         send200(conn)
