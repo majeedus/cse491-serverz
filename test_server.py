@@ -97,3 +97,4 @@ def test_post():
     server.handle_connection(conn)
 
     assert conn.sent == expected_return, 'Got: %s' % (repr(conn.sent),)
+    
