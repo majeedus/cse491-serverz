@@ -60,8 +60,8 @@ def handle_connection(conn):
 	server['SERVER_PROTOCOL'] = request.readline().split()
 	
 	# Grab the path
-	path = urlparse.urlparse(path)
-	server['PATH_INFO'] = path.path_exists
+	path = urlparse(path)
+	server['PATH_INFO'] = path.path
 	server['QUERY_STRING'] = path.query
 	
 	# Parse the query string
@@ -74,7 +74,7 @@ def handle_connection(conn):
 	
 	conn.close()
 	
-def getRequests(conn, server, request):	
+def getRequest(conn, server, request):	
 	if server['PATH_INFO'] == '/':
 		send200(conn)
 		index(conn, server)
@@ -101,7 +101,7 @@ def getRequests(conn, server, request):
 		
 	conn.close()
 
-def PostRequests(conn, server, request):
+def PostRequest(conn, server, request):
     info = {}
     line = request.readline()
     while line != '\r\n':
@@ -138,8 +138,8 @@ def form(conn, server):
 def form_post(conn, server):
 	conn.send(env.get_template('form_post.html').render())
 			 
-def submit(conn, url_info, data, request_type):
-    query_string = urlparse.parse_qs(environ['QUERY_STRING'])
+def submit(conn, server):
+    query_string = parse_qs(server['QUERY_STRING'])
     vars = {'firstname':query_string['firstname'][0], 'lastname':query_string['lastname'][0]}
 
     conn.send(env.get_template('form_results.html').render(vars))
