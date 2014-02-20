@@ -32,7 +32,7 @@ def test_handle_connection():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
     assert '<h1>Welcome to majeedus\'s Web Server</h1>' in conn.sent, \
     'Got: %s' % (repr(conn.sent),)
 
@@ -42,7 +42,7 @@ def test_content():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
     assert '<h1>Content Page!</h1>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
 
 def test_file():
@@ -50,24 +50,23 @@ def test_file():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
-    assert '<h1>Files page!</h1>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert '<h1>File Page!</h1>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
 
 def test_image():
     conn = FakeConnection("GET /image HTTP/1.0\r\n\r\n")
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
-    assert '<h1>Images Page!</h1>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert '<h1>Image Page!</h1>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
 
 def test_form_get():
     conn = FakeConnection("GET /submit?firstname=Usman&lastname=Majeed HTTP/1.0\r\n\r\n")
-
     
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
     assert 'Hello Usman Majeed!' in conn.sent, 'Got: %s' % (repr(conn.sent),)
 
 def test_form_page_get():
@@ -75,7 +74,7 @@ def test_form_page_get():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
     assert '<form action="/submit" method="GET">' in conn.sent, 'Got: %s' % (repr(conn.sent),)
 
 def test_form_page_post():
@@ -83,15 +82,18 @@ def test_form_page_post():
 
     server.handle_connection(conn)
 
-    assert 'HTTP/1.0 200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0200 OK\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
     assert '<form action="/submitpost" method="POST">' in conn.sent, 'Got: %s' % (repr(conn.sent),)
 
-#def test_404_error():
-    #conn = FakeConnection("GET /404 HTTP/1.0\r\n\r\n")
+def test_404_error():
+    conn = FakeConnection("GET /404 HTTP/1.0\r\n\r\n")
 
-    #server.handle_connection(conn)
+    server.handle_connection(conn)
 
-    #assert 'HTTP/1.0 404 NOT FOUND\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
-    #assert '<h1>404 NOT FOUND</h1>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert 'HTTP/1.0404 NOT FOUND\r\n' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert '<h1>404 NOT FOUND</h1>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+    assert '<p>Could not find /404, please try again.</p>' in conn.sent, 'Got: %s' % (repr(conn.sent),)
+
+
 
 

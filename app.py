@@ -61,7 +61,7 @@ def send404(environ):
     env.get_template('error404.html').render({'PATH': environ['PATH_INFO']}).encode('latin-1', 'replace')
 
 def send501(environ):
-    return '404 NOT FOUND', [('Content-type', 'text/html')], \
+    return '501 NOT IMPLEMENTED', [('Content-type', 'text/html')], \
     env.get_template('error501.html').render({'PATH': environ['PATH_INFO']}).encode('latin-1', 'replace')
 
 def index(environ):
