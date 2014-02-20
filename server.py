@@ -8,6 +8,21 @@ import urlparse
 from StringIO import StringIO
 from app import create_app
 
+#import quixote
+#from quixote.demo import create_publisher
+#from quixote.demo.mini_demo import create_publisher
+#from quixote.demo.altdemo import create_publisher
+
+#_the_app = None
+#def make_app():
+	#global _the_app
+
+	#if _the_app is None:
+		#p = create_publisher()
+		#_the_app = quixote.get_wsgi_app()
+
+	#return _the_app
+
 def handle_connection(conn):
     info = conn.recv(1)
 
@@ -48,6 +63,7 @@ def handle_connection(conn):
     environ['CONTENT_TYPE']   = contentType
     environ['CONTENT_LENGTH'] = content_len
     environ['wsgi.input']     = wsgi_input
+    environ['SCRIPT_NAME'] = ''
 
     def start_response(status, response_headers):
         conn.send('HTTP/1.0')

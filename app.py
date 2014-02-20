@@ -19,6 +19,10 @@ def app(environ, start_response):
 		status, response_headers, response = getRequest(environ)
 	elif environ['REQUEST_METHOD'] == 'POST':
 		status, response_headers, response = postRequest(environ)
+		if "multipart/form-data" in environ['CONTENT_TYPE']:
+			cLen = int(environ['CONTENT_LENGTH'])
+			data = environ['wsgi.input'].read(cLen)
+			environ['wsgi.input'] = StringIO(data)
 	else:
 		status, response_headers, response = send501(environ)
 
@@ -73,12 +77,12 @@ def content(environ):
     env.get_template('content.html').render().encode('latin-1', 'replace')
 
 def image(environ):
-    return '200 OK', [('Content-type','text/html')], \
-    env.get_template('image.html').render().encode('latin-1', 'replace')
-
+	img = open_file("images/dogecoin.jpg")
+	return '200 OK', [('Content-type','image/jpeg')], img
+    
 def file(environ):
-    return '200 OK', [('Content-type','text/html')], \
-    env.get_template('file.html').render().encode('latin-1', 'replace')
+    txtfile = open_file("files/foo_bar.txt")
+    return '200 OK', [('Content-type','text/plain')], txtfile
 
 def form(environ):
     return '200 OK', [('Content-type','text/html')], \
@@ -100,6 +104,12 @@ def post_results(form):
     
     return '200 OK', [('Content-type', 'text/html')], \
     env.get_template('form_results.html').render(query).encode('latin-1', 'replace')
+    
+def open_file(filename):
+    fp = open(filename, "rb")
+    data = fp.read()
+    fp.close()
+    return data
 	
 
 def create_app():
