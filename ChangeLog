@@ -1,4 +1,7 @@
+2/19/2014 - Usman Majeed - majeedus
+Fixed submit POST error and nosetests error. Really pissed because it was some very simple syntax errors..
 
 1/15/2014 - Usman Majeed - majeedus 
 Edited server.py to include HTPP status code and hello world text for HW1.
+
 
