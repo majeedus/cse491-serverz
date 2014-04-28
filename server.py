@@ -2,19 +2,19 @@
 import random
 import socket
 import time
+import imageapp
 import urlparse
 import cgi
-import jinja2
-#import quixote
-import StringIO
-#import imageapp
 import argparse
 import PIL
+import jinja2
+import quixote
+import StringIO
 from StringIO import StringIO
 from app import create_app
 from wsgiref.validate import validator
 from wsgiref.simple_server import make_server
-#from quixote.demo.altdemo import create_publisher
+from quixote.demo.altdemo import create_publisher
 
 #from quixote.demo.altdemo import create_publisher
 #from quixote.demo import create_publisher
@@ -146,6 +146,17 @@ def main():
 	elif args.run_app == "altdemo":
 		p = imageapp.create()
 		wsgi_app = quixote.get_wsgi_app() 
+	elif args.run_app == "chat":
+		import chat
+		wsgi_app == chat.setup()
+	elif args.run_app == "cookie":
+		wsgi_app = cookie_app.wsgi_app
+	elif args.run_app == "quotes":
+		import quotes
+		wgsgi_app = quotes.setup()
+	else:
+		raise Exception("Invalid app.")
+	
 	
 	s = socket.socket()         # Create a socket object
 	host = socket.getfqdn()     # Get local machine name

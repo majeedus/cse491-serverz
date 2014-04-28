@@ -1,9 +1,8 @@
-go /content
-code 200
+go /
+tfind my_template
 
-go /file
-find "Testing"
-code 200
+follow set
+find "my_template=green"
 
-go /image
-code 200
+follow del
+notfind "my_template"
